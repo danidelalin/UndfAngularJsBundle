@@ -14,7 +14,7 @@
     ],
     "require": {
         "php":                      ">=5.3.1",
-        "symfony/assetic-bundle":   ">=2.1.*"
+        "symfony/assetic-bundle":   ">=2.1.1"
     },
     "replace": {
         "undf/AngularJsBundle": "dev-master"
