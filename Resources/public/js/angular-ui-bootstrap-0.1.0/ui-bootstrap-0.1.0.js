@@ -7,7 +7,7 @@ angular.module('ui.bootstrap.accordion', ['ui.bootstrap.collapse'])
 })
 
 .controller('AccordionController', ['$scope', '$attrs', 'accordionConfig', function ($scope, $attrs, accordionConfig) {
-  
+
   // This array keeps track of the accordion groups
   this.groups = [];
 
@@ -22,7 +22,7 @@ angular.module('ui.bootstrap.accordion', ['ui.bootstrap.collapse'])
       });
     }
   };
-  
+
   // This is called from the accordion-group directive to add itself to the accordion
   this.addGroup = function(groupScope) {
     var that = this;
@@ -41,11 +41,11 @@ angular.module('ui.bootstrap.accordion', ['ui.bootstrap.collapse'])
     }
   };
 
-}]);
+}])
 
 // The accordion directive simply sets up the directive controller
 // and adds an accordion CSS class to itself element.
-angular.module('ui.bootstrap.accordion').directive('accordion', function () {
+.directive('accordion', function () {
   return {
     restrict:'EA',
     controller:'AccordionController',
@@ -53,10 +53,10 @@ angular.module('ui.bootstrap.accordion').directive('accordion', function () {
     replace: false,
     templateUrl: 'template/accordion/accordion.html'
   };
-});
+})
 
 // The accordion-group directive indicates a block of html that will expand and collapse in an accordion
-angular.module('ui.bootstrap.accordion').directive('accordionGroup', ['$parse', '$transition', '$timeout', function($parse, $transition, $timeout) {
+.directive('accordionGroup', ['$parse', '$transition', '$timeout', function($parse, $transition, $timeout) {
   return {
     require:'^accordion',         // We need this directive to be inside an accordion
     restrict:'EA',
@@ -64,13 +64,18 @@ angular.module('ui.bootstrap.accordion').directive('accordionGroup', ['$parse', 
     replace: true,                // The element containing the directive will be replaced with the template
     templateUrl:'template/accordion/accordion-group.html',
     scope:{ heading:'@' },        // Create an isolated scope and interpolate the heading attribute onto this scope
+    controller: ['$scope', function($scope) {
+      this.setHeading = function(element) {
+        this.heading = element;
+      };
+    }],
     link: function(scope, element, attrs, accordionCtrl) {
       var getIsOpen, setIsOpen;
 
       accordionCtrl.addGroup(scope);
 
       scope.isOpen = false;
-      
+
       if ( attrs.isOpen ) {
         getIsOpen = $parse(attrs.isOpen);
         setIsOpen = getIsOpen.assign;
@@ -79,7 +84,7 @@ angular.module('ui.bootstrap.accordion').directive('accordionGroup', ['$parse', 
           function watchIsOpen() { return getIsOpen(scope.$parent); },
           function updateOpen(value) { scope.isOpen = value; }
         );
-        
+
         scope.isOpen = getIsOpen ? getIsOpen(scope.$parent) : false;
       }
 
@@ -91,10 +96,51 @@ angular.module('ui.bootstrap.accordion').directive('accordionGroup', ['$parse', 
           setIsOpen(scope.$parent, value);
         }
       });
-
     }
   };
-}]);
+}])
+
+// Use accordion-heading below an accordion-group to provide a heading containing HTML
+// <accordion-group>
+//   <accordion-heading>Heading containing HTML - <img src="..."></accordion-heading>
+// </accordion-group>
+.directive('accordionHeading', function() {
+  return {
+    restrict: 'EA',
+    transclude: true,   // Grab the contents to be used as the heading
+    template: '',       // In effect remove this element!
+    replace: true,
+    require: '^accordionGroup',
+    compile: function(element, attr, transclude) {
+      return function link(scope, element, attr, accordionGroupCtrl) {
+        // Pass the heading to the accordion-group controller
+        // so that it can be transcluded into the right place in the template
+        // [The second parameter to transclude causes the elements to be cloned so that they work in ng-repeat]
+        accordionGroupCtrl.setHeading(transclude(scope, function() {}));
+      };
+    }
+  };
+})
+
+// Use in the accordion-group template to indicate where you want the heading to be transcluded
+// You must provide the property on the accordion-group controller that will hold the transcluded element
+// <div class="accordion-group">
+//   <div class="accordion-heading" ><a ... accordion-transclude="heading">...</a></div>
+//   ...
+// </div>
+.directive('accordionTransclude', function() {
+  return {
+    require: '^accordionGroup',
+    link: function(scope, element, attr, controller) {
+      scope.$watch(function() { return controller[attr.accordionTransclude]; }, function(heading) {
+        if ( heading ) {
+          element.html('');
+          element.append(heading);
+        }
+      });
+    }
+  };
+});
 
 angular.module("ui.bootstrap.alert", []).directive('alert', function () {
   return {
@@ -110,10 +156,10 @@ angular.module("ui.bootstrap.alert", []).directive('alert', function () {
 });
 /*
 *
-*    Angular Bootstrap Carousel 
+*    Angular Bootstrap Carousel
 *
 *      The carousel has all of the function that the original Bootstrap carousel has, except for animations.
-*      
+*
 *      For no interval set the interval to non-number, or milliseconds of desired interval
 *      Template: <carousel interval="none"><slide>{{anything}}</slide></carousel>
 *      To change the carousel's active slide set the active attribute to true
@@ -145,7 +191,7 @@ angular.module('ui.bootstrap.carousel', ['ui.bootstrap.transition'])
     }
     function goNext() {
       //If we have a slide to transition from and we have a transition type and we're allowed, go
-      if (self.currentSlide && angular.isString(direction) && !$scope.noTransition && nextSlide.$element) { 
+      if (self.currentSlide && angular.isString(direction) && !$scope.noTransition && nextSlide.$element) {
         //We shouldn't do class manip in here, but it's the same weird thing bootstrap does. need to fix sometime
         nextSlide.$element.addClass(direction);
         nextSlide.$element[0].offsetWidth = nextSlide.$element[0].offsetWidth; //force reflow
@@ -319,7 +365,7 @@ angular.module('ui.bootstrap.collapse',['ui.bootstrap.transition'])
       var initialAnimSkip = true;
       scope.$watch(function (){ return element[0].scrollHeight; }, function (value) {
         //The listener is called when scollHeight changes
-        //It actually does on 2 scenarios: 
+        //It actually does on 2 scenarios:
         // 1. Parent is set to display none
         // 2. angular bindings inside are resolved
         //When we have a change of scrollHeight we are setting again the correct height if the group is opened
@@ -329,7 +375,7 @@ angular.module('ui.bootstrap.collapse',['ui.bootstrap.transition'])
           }
         }
       });
-      
+
       scope.$watch(attrs.collapse, function(value) {
         if (value) {
           collapse();
@@ -337,7 +383,7 @@ angular.module('ui.bootstrap.collapse',['ui.bootstrap.transition'])
           expand();
         }
       });
-      
+
 
       var currentTransition;
       var doTransition = function(change) {
@@ -370,7 +416,7 @@ angular.module('ui.bootstrap.collapse',['ui.bootstrap.transition'])
         }
         isCollapsed = false;
       };
-      
+
       var collapse = function() {
         isCollapsed = true;
         if (initialAnimSkip) {
@@ -441,9 +487,9 @@ dialogModule.provider("$dialog", function(){
 
     // The `Dialog` class represents a modal dialog. The dialog class can be invoked by providing an options object
     // containing at lest template or templateUrl and controller:
-    // 
+    //
     //     var d = new Dialog({templateUrl: 'foo.html', controller: 'BarController'});
-    // 
+    //
     // Dialogs can also be created using templateUrl and controller as distinct arguments:
     //
     //     var d = new Dialog('path/to/dialog.html', MyDialogController);
@@ -494,7 +540,7 @@ dialogModule.provider("$dialog", function(){
       if(controller){
         options.controller = controller;
       }
-      
+
       if(!(options.template || options.templateUrl)) {
         throw new Error('Dialog.open expected template or templateUrl, neither found. Use options or open method to specify them.');
       }
@@ -660,7 +706,7 @@ dialogModule.provider("$dialog", function(){
    </li>
  */
 
-angular.module('ui.bootstrap.dropdownToggle', []).directive('dropdownToggle', 
+angular.module('ui.bootstrap.dropdownToggle', []).directive('dropdownToggle',
 ['$document', '$location', '$window', function ($document, $location, $window) {
   var openElement = null, close;
   return {
@@ -739,7 +785,7 @@ angular.module('ui.bootstrap.modal', []).directive('modal', ['$parse',function($
         backdropEl.css('display','none');
         body.append(backdropEl);
       }
-      
+
       function setShown(shown) {
         scope.$apply(function() {
           model.assign(scope, shown);
@@ -749,10 +795,10 @@ angular.module('ui.bootstrap.modal', []).directive('modal', ['$parse',function($
       function escapeClose(evt) {
         if (evt.which === 27) { setClosed(); }
       }
-      function clickClose() { 
+      function clickClose() {
         setClosed();
       }
-      
+
       function close() {
         if (opts.escape) { body.unbind('keyup', escapeClose); }
         if (opts.backdrop) {
@@ -803,11 +849,11 @@ angular.module('ui.bootstrap.pagination', [])
     link: function(scope) {
       scope.$watch('numPages + currentPage + maxSize', function() {
         scope.pages = [];
-        
+
         //set the default maxSize to numPages
         var maxSize = ( scope.maxSize && scope.maxSize < scope.numPages ) ? scope.maxSize : scope.numPages;
         var startPage = scope.currentPage - Math.floor(maxSize/2);
-        
+
         //adjust the startPage within boundary
         if(startPage < 1) {
             startPage = 1;
@@ -868,8 +914,8 @@ angular.module( 'ui.bootstrap.popover', [] )
   };
 })
 .directive( 'popover', [ '$compile', '$timeout', '$parse', function ( $compile, $timeout, $parse ) {
-  
-  var template = 
+
+  var template =
     '<popover-popup '+
       'popover-title="{{tt_title}}" '+
       'popover-content="{{tt_popover}}" '+
@@ -878,11 +924,11 @@ angular.module( 'ui.bootstrap.popover', [] )
       'is-open="tt_isOpen"'+
       '>'+
     '</popover-popup>';
-  
+
   return {
     scope: true,
     link: function ( scope, element, attr ) {
-      var popover = $compile( template )( scope ), 
+      var popover = $compile( template )( scope ),
           transitionTimeout;
 
       attr.$observe( 'popover', function ( val ) {
@@ -904,7 +950,7 @@ angular.module( 'ui.bootstrap.popover', [] )
 
       // By default, the popover is not open.
       scope.tt_isOpen = false;
-      
+
       // Calculate the current position and size of the directive element.
       function getPosition() {
         return {
@@ -914,34 +960,34 @@ angular.module( 'ui.bootstrap.popover', [] )
           left: element.prop( 'offsetLeft' )
         };
       }
-      
+
       // Show the popover popup element.
       function show() {
         var position,
             ttWidth,
             ttHeight,
             ttPosition;
-          
+
         // If there is a pending remove transition, we must cancel it, lest the
         // toolip be mysteriously removed.
         if ( transitionTimeout ) {
           $timeout.cancel( transitionTimeout );
         }
-        
+
         // Set the initial positioning.
         popover.css({ top: 0, left: 0, display: 'block' });
-        
-        // Now we add it to the DOM because need some info about it. But it's not 
+
+        // Now we add it to the DOM because need some info about it. But it's not
         // visible yet anyway.
         element.after( popover );
-        
+
         // Get the position of the directive element.
         position = getPosition();
-        
+
         // Get the height and width of the popover so we can center it.
         ttWidth = popover.prop( 'offsetWidth' );
         ttHeight = popover.prop( 'offsetHeight' );
-        
+
         // Calculate the popover's top and left coordinates to center it with
         // this directive.
         switch ( scope.tt_placement ) {
@@ -970,21 +1016,21 @@ angular.module( 'ui.bootstrap.popover', [] )
             };
             break;
         }
-        
+
         // Now set the calculated positioning.
         popover.css( ttPosition );
-          
+
         // And show the popover.
         scope.tt_isOpen = true;
       }
-      
+
       // Hide the popover popup element.
       function hide() {
         // First things first: we don't show it anymore.
         //popover.removeClass( 'in' );
         scope.tt_isOpen = false;
-        
-        // And now we remove it from the DOM. However, if we have animation, we 
+
+        // And now we remove it from the DOM. However, if we have animation, we
         // need to wait for it to expire beforehand.
         // FIXME: this is a placeholder for a port of the transitions library.
         if ( angular.isDefined( scope.tt_animation ) && scope.tt_animation() ) {
@@ -993,7 +1039,7 @@ angular.module( 'ui.bootstrap.popover', [] )
           popover.remove();
         }
       }
-      
+
       // Register the event listeners.
       element.bind( 'click', function() {
         if(scope.tt_isOpen){
@@ -1026,10 +1072,10 @@ angular.module('ui.bootstrap.tabs', [])
     panes.push(pane);
   };
 
-  this.removePane = function removePane(pane) { 
+  this.removePane = function removePane(pane) {
     var index = panes.indexOf(pane);
     panes.splice(index, 1);
-    //Select a new pane if removed pane was selected 
+    //Select a new pane if removed pane was selected
     if (pane.selected && panes.length > 0) {
       $scope.select(panes[index < panes.length ? index : index-1]);
     }
@@ -1099,8 +1145,8 @@ angular.module( 'ui.bootstrap.tooltip', [] )
   };
 })
 .directive( 'tooltip', [ '$compile', '$timeout', '$parse', function ( $compile, $timeout, $parse ) {
-  
-  var template = 
+
+  var template =
     '<tooltip-popup '+
       'tooltip-title="{{tt_tooltip}}" '+
       'placement="{{tt_placement}}" '+
@@ -1108,11 +1154,11 @@ angular.module( 'ui.bootstrap.tooltip', [] )
       'is-open="tt_isOpen"'+
       '>'+
     '</tooltip-popup>';
-  
+
   return {
     scope: true,
     link: function ( scope, element, attr ) {
-      var tooltip = $compile( template )( scope ), 
+      var tooltip = $compile( template )( scope ),
           transitionTimeout;
 
       attr.$observe( 'tooltip', function ( val ) {
@@ -1130,7 +1176,7 @@ angular.module( 'ui.bootstrap.tooltip', [] )
 
       // By default, the tooltip is not open.
       scope.tt_isOpen = false;
-      
+
       // Calculate the current position and size of the directive element.
       function getPosition() {
         return {
@@ -1140,34 +1186,34 @@ angular.module( 'ui.bootstrap.tooltip', [] )
           left: element.prop( 'offsetLeft' )
         };
       }
-      
+
       // Show the tooltip popup element.
       function show() {
         var position,
             ttWidth,
             ttHeight,
             ttPosition;
-          
+
         // If there is a pending remove transition, we must cancel it, lest the
         // toolip be mysteriously removed.
         if ( transitionTimeout ) {
           $timeout.cancel( transitionTimeout );
         }
-        
+
         // Set the initial positioning.
         tooltip.css({ top: 0, left: 0, display: 'block' });
-        
-        // Now we add it to the DOM because need some info about it. But it's not 
+
+        // Now we add it to the DOM because need some info about it. But it's not
         // visible yet anyway.
         element.after( tooltip );
-        
+
         // Get the position of the directive element.
         position = getPosition();
-        
+
         // Get the height and width of the tooltip so we can center it.
         ttWidth = tooltip.prop( 'offsetWidth' );
         ttHeight = tooltip.prop( 'offsetHeight' );
-        
+
         // Calculate the tooltip's top and left coordinates to center it with
         // this directive.
         switch ( scope.tt_placement ) {
@@ -1196,21 +1242,21 @@ angular.module( 'ui.bootstrap.tooltip', [] )
             };
             break;
         }
-        
+
         // Now set the calculated positioning.
         tooltip.css( ttPosition );
-          
+
         // And show the tooltip.
         scope.tt_isOpen = true;
       }
-      
+
       // Hide the tooltip popup element.
       function hide() {
         // First things first: we don't show it anymore.
         //tooltip.removeClass( 'in' );
         scope.tt_isOpen = false;
-        
-        // And now we remove it from the DOM. However, if we have animation, we 
+
+        // And now we remove it from the DOM. However, if we have animation, we
         // need to wait for it to expire beforehand.
         // FIXME: this is a placeholder for a port of the transitions library.
         if ( angular.isDefined( scope.tt_animation ) && scope.tt_animation() ) {
@@ -1219,7 +1265,7 @@ angular.module( 'ui.bootstrap.tooltip', [] )
           tooltip.remove();
         }
       }
-      
+
       // Register the event listeners.
       element.bind( 'mouseenter', function() {
         scope.$apply( show );
