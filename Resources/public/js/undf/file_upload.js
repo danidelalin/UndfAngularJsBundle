@@ -31,6 +31,7 @@ angular.module('uFileUpload', []).directive('uFileUpload', function () {
                 };
                 clearInput($element.find('[type=file]'));
                 $scope[$attrs.uFileSrc] = $scope[$attrs.uFileDefaultSrc];
+                $scope[$attrs.uForm][$attrs.uFileName] = '';
             };
         },
         compile: function (element, attrs, transclude) {
