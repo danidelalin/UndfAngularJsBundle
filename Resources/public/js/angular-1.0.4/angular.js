@@ -6600,25 +6600,25 @@ function $ParseProvider() {
  *   you can treat promises attached to a scope as if they were the resulting values.
  * - Q has many more features that $q, but that comes at a cost of bytes. $q is tiny, but contains
  *   all the important functionality needed for common async tasks.
- * 
+ *
  *  # Testing
- * 
+ *
  *  <pre>
  *    it('should simulate promise', inject(function($q, $rootSCope) {
  *      var deferred = $q.defer();
  *      var promise = deferred.promise;
  *      var resolvedValue;
- * 
+ *
  *      promise.then(function(value) { resolvedValue = value; });
  *      expect(resolvedValue).toBeUndefined();
- * 
+ *
  *      // Simulate resolving of promise
  *      defered.resolve(123);
  *      // Note that the 'then' function does not get called synchronously.
  *      // This is because we want the promise API to always be async, whether or not
  *      // it got called synchronously or asynchronously.
  *      expect(resolvedValue).toBeUndefined();
- * 
+ *
  *      // Propagate promise resolution to 'then' functions using $apply().
  *      $rootScope.$apply();
  *      expect(resolvedValue).toEqual(123);
@@ -10624,7 +10624,8 @@ var nullFormCtrl = {
   $addControl: noop,
   $removeControl: noop,
   $setValidity: noop,
-  $setDirty: noop
+  $setDirty: noop,
+  $setPristine: noop
 };
 
 /**
@@ -10739,6 +10740,16 @@ function FormController(element, attrs) {
     parentForm.$setDirty();
   };
 
+  form.$setPristine = function () {
+    element.removeClass(DIRTY_CLASS).addClass(PRISTINE_CLASS);
+    form.$dirty = false;
+    form.$pristine = true;
+    angular.forEach(form, function(value, key) {
+      if (value.$name && value.$setPristine) {
+        value.$setPristine();
+      }
+    });
+  };
 }
 
 
@@ -12343,11 +12354,12 @@ function classDirective(name, selector) {
 
     function ngClassWatchAction(newVal, oldVal) {
       if (selector === true || scope.$index % 2 === selector) {
-        if (oldVal && (newVal !== oldVal)) {
+        if (oldVal && !equals(newVal,oldVal)) {
           removeClass(oldVal);
         }
         addClass(newVal);
       }
+      oldVal = copy(newVal);
     }
 
 
